@@ -4,7 +4,7 @@
     <v-app class="primary lighten-2 split-bg">
       <v-container >
         <v-layout align-center justify-center>
-         <v-card width="1200px">
+         <v-card width="1200px" class="mt-4">
             <v-card-title>Здравствуйте, {{this.username}}</v-card-title>
          </v-card>
         </v-layout>
