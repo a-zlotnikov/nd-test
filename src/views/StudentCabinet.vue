@@ -11,7 +11,14 @@
                 Добавить вопрос
               </v-btn>
               <hr/>
-              <h2 class="mt-4">История запросов</h2>
+              <h2 class="mt-4 mb-4">История запросов</h2>
+              <v-list rounded>
+                <v-list-item-group color="primary">
+                  <v-list-item v-for="(question, i) in questions" :key="i" @click="showDetailsDialog(question)">
+                    <v-list-item-content v-text="question.title"></v-list-item-content>
+                  </v-list-item>
+                </v-list-item-group>
+              </v-list>
             </v-card-text>
           </v-card>
         </v-layout>
@@ -84,7 +91,12 @@
             </v-btn>
           </v-card>
         </v-dialog>
-
+        <v-dialog v-model="addDetailsDialog" v-if="addDetailsDialog" persistent width="70%">
+         <v-card>
+           <v-card-title v-text="selectedQuestion.title" class="mb-6"></v-card-title>
+           <v-card-text v-text="selectedQuestion.text"></v-card-text>
+         </v-card>
+        </v-dialog>
       </v-container>
     </v-app>
   </div>
@@ -100,7 +112,29 @@
     data: (vm) => {
       return {
         addMessageDialog: false,
+        addDetailsDialog: false,
+        selectedQuestion: null,
         username: 'студент',
+        questions: [
+          {
+            title: 'Вопрос №1',
+            text: 'Почём рыбка?',
+
+            opened: false
+          },
+          {
+            title: 'Вопрос №2',
+            text: 'Почём мяско?',
+
+            opened: false
+          },
+          {
+            title: 'Вопрос №3',
+            text: 'Почём молочко?',
+
+            opened: false
+          }
+        ],
         dropzoneOptions: {
           url: "",
           thumbnailWidth: 100,
@@ -137,6 +171,10 @@
       },
       sendMessage() {
 
+      },
+      showDetailsDialog(question) {
+        this.selectedQuestion = Object.assign({}, question)
+        this.addDetailsDialog = true
       }
     }
   };
