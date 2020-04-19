@@ -20,7 +20,7 @@
                           label="Логин"
                           type="text"
                           v-model.trim="login"
-                          :class="{invalid: $v.login.$dirty && $v.login.required}"
+                          :class="{invalid: $v.login.$dirty && !$v.login.required}"
                   ></v-text-field>
                   <small
                           class="mt-0 invalid"
@@ -33,7 +33,7 @@
                           id="password"
                           type="password"
                           v-model.trim="password"
-                          :class="{invalid: $v.password.$dirty && $v.password.required || ($v.password.$dirty && !$v.password.minLength)}"
+                          :class="{invalid: $v.password.$dirty && !$v.password.required}"
                   ></v-text-field>
                   <small
                           class="invalid"
@@ -64,20 +64,37 @@
   export default {
     name: 'Login',
     data: () => ({
-      login: '',
-      password: ''
+        login: '',
+        password: ''
     }),
     validations: {
       login: {required},
-      password: {required, minLength: minLength(4)}
+      password: {required}
     },
     methods: {
-      submitHandler() {
+      async submitHandler() {
         if (this.$v.$invalid) {
-          this.$v.touch()
+          this.$v.$touch()
           return
+        } else {
+          let resp = await fetch('/users/login', {
+            method: 'POST',
+            headers: {'Content-type': 'application/json'},
+            body: JSON.stringify({login: this.login, password: this.password})
+          })
+          const result = await resp.json()
+          if (result.user) {
+            if (result.user.isTeacher) {
+              this.$router.push('/teacher')
+            } else if (!result.user.isTeacher) {
+              this.$router.push('/student')
+            } else {
+              return
+            }
+          } else {
+            alert('Пароль введен неверно')
+          }
         }
-        this.$router.push('/student')
       }
     }
   };
