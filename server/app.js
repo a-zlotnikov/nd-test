@@ -8,8 +8,10 @@ const app = express();
 useMiddleware(app);
 
 const usersRouter = require('./routes/users')
+const questionsRouter = require('./routes/questions')
 
 app.use('/users', usersRouter)
+app.use('/questions', questionsRouter)
 
 app.use(express.static(publicPath));
 app.get('*', (req, res) => {

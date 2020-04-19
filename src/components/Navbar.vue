@@ -6,20 +6,25 @@
       </div>
     </v-toolbar-title>
     <v-spacer></v-spacer>
-    <router-link to="/teacher" v-if="this.category.toString() === 'Студент'"><div class="white--text mr-4">К преподавателю</div></router-link>
-    <router-link to="/student" v-else-if="this.category.toString() === 'Преподаватель'"><div class="white--text mr-4">К студенту</div></router-link>
     <v-icon class="mr=0" @click="logout">logout</v-icon>
   </v-toolbar>
 </template>
 
 <script>
+  import Cookies from 'js-cookie'
   export default {
     props: [
       'category'
     ],
     name: 'Navbar',
     methods: {
-      logout() {
+      async logout() {
+        await fetch('/users/logout', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'}
+        })
+    Cookies.remove('username')
+    Cookies.remove('isTeacher')
     this.$router.push('/')
   }
     }

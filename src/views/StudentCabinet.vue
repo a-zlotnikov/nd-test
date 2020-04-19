@@ -27,10 +27,30 @@
             <v-card-title class="mb-6">Новый вопрос</v-card-title>
             <v-card-text>
               <v-form width="600px">
-                <v-label>Тема вопроса</v-label>
-                <v-text-field></v-text-field>
-                <v-label>Текст вопроса</v-label>
-                <v-text-field></v-text-field>
+                <v-text-field
+                  name="title"
+                  label="Тема вопроса"
+                  id="title"
+                  type="text"
+                  v-model="title"
+                  :class="{invalid: $v.title.$dirty && !$v.title.required}"
+                ></v-text-field>
+                <small
+                        class="invalid"
+                        v-if="$v.title.$dirty && !$v.title.required"
+                >Поле не должно быть пустым</small>
+                <v-text-field
+                        name="text"
+                        label="Текст вопроса"
+                        id="text"
+                        type="text"
+                        v-model="text"
+                        :class="{invalid: $v.text.$dirty && !$v.text.required}"
+                ></v-text-field>
+                <small
+                        class="invalid"
+                        v-if="$v.text.$dirty && !$v.text.required"
+                >Поле не должно быть пустым</small>
                 <v-card dark color="white darken-1 align-center mt-2">
                   <v-card-title class="pb-0">
                     <div class="black--text">Добавление файла</div>
@@ -95,6 +115,15 @@
          <v-card>
            <v-card-title v-text="selectedQuestion.title" class="mb-6"></v-card-title>
            <v-card-text v-text="selectedQuestion.text"></v-card-text>
+           <v-btn
+                   color="primary"
+                   icon
+                   flat
+                   @click="cancelDetailsDialog"
+                   style="position:absolute; top:0; right:0"
+           >
+             <v-icon>clear</v-icon>
+           </v-btn>
          </v-card>
         </v-dialog>
       </v-container>
@@ -106,6 +135,8 @@
   import Navbar from '../components/Navbar'
   import vue2Dropzone from "vue2-dropzone"
   import "vue2-dropzone/dist/vue2Dropzone.min.css"
+  import Cookies from 'js-cookie'
+  import {required} from 'vuelidate/lib/validators'
 
   export default {
     name: 'StudentCabinet',
@@ -114,30 +145,26 @@
         addMessageDialog: false,
         addDetailsDialog: false,
         selectedQuestion: null,
-        username: 'студент',
+        title: '',
+        text: '',
+        username: Cookies.get('username'),
         questions: [
           {
             title: 'Вопрос №1',
             text: 'Почём рыбка?',
-
-            opened: false
           },
           {
             title: 'Вопрос №2',
             text: 'Почём мяско?',
-
-            opened: false
           },
           {
             title: 'Вопрос №3',
             text: 'Почём молочко?',
-
-            opened: false
           }
         ],
         dropzoneOptions: {
           url: "",
-          thumbnailWidth: 100,
+          thumbnailWidth: 70,
           parallelUploads: 1,
           maxFilesize: 0.1,
           autoProcessQueue: false,
@@ -158,6 +185,10 @@
         }
       }
     },
+    validations: {
+      title: {required},
+      text: {required}
+    },
     components: {
       Navbar,
       vueDropzone: vue2Dropzone
@@ -169,17 +200,36 @@
       cancelMessageDialog() {
         this.addMessageDialog = false
       },
-      sendMessage() {
-
+      async sendMessage() {
+        if (this.$v.$invalid) {
+          this.$v.$touch()
+          return
+        } else {
+          let resp = await fetch('/questions/ask-question', {
+            method: 'POST',
+            headers: {'Content-type': 'application/json'},
+            body: JSON.stringify({title: this.title, text: this.text})
+          })
+          const result = await resp.json()
+          if (result.answer === "ok") {
+            this.addMessageDialog = false
+          }
+        }
       },
       showDetailsDialog(question) {
         this.selectedQuestion = Object.assign({}, question)
         this.addDetailsDialog = true
+      },
+      cancelDetailsDialog() {
+        this.selectedQuestion = null
+        this.addDetailsDialog = false
       }
     }
   };
 </script>
 
 <style scoped>
-
+  .invalid {
+    color:red;
+  }
 </style>

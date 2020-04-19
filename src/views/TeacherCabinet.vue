@@ -27,13 +27,14 @@
   import Navbar from '../components/Navbar'
   import vue2Dropzone from "vue2-dropzone"
   import "vue2-dropzone/dist/vue2Dropzone.min.css"
+  import Cookies from 'js-cookie'
 
   export default {
     name: 'TeacherCabinet',
     data: (vm) => {
       return {
         addMessageDialog: false,
-        username: 'преподаватель',
+        username: Cookies.get('username'),
         questions: [
           {
             title: 'Вопрос №1',

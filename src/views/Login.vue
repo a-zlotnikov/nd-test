@@ -59,7 +59,8 @@
 </template>
 
 <script>
-  import {required, minLength} from 'vuelidate/lib/validators'
+  import {required} from 'vuelidate/lib/validators'
+  import Cookies from 'js-cookie'
 
   export default {
     name: 'Login',
@@ -85,8 +86,12 @@
           const result = await resp.json()
           if (result.user) {
             if (result.user.isTeacher) {
+              Cookies.set('username', result.user.username)
+              Cookies.set('isTeacher', result.user.isTeacher)
               this.$router.push('/teacher')
             } else if (!result.user.isTeacher) {
+              Cookies.set('username', result.user.username)
+              Cookies.set('isTeacher', result.user.isTeacher)
               this.$router.push('/student')
             } else {
               return
