@@ -1,19 +1,28 @@
-# nd-test
+# Тестовое задание для компании "Новый Диск"
 
-## Project setup
+## Установка проекта
+
+В корне приложения:
 ```
 yarn install
 ```
+Далее
+```
+cd server
+npm i
+```
 
-### Compiles and hot-reloads for development
+### Далее открываем 2 терминала,
+на одном в корне:
 ```
 yarn serve
 ```
-
-### Compiles and minifies for production
+на другом:
 ```
-yarn build
+cd server
+npm start
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### Автор
+Анатолий Злотников
+<a.v.zlotnikov@gmail.com>
