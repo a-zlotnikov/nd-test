@@ -147,7 +147,6 @@
       .then(
         response => response.json())
       .then(json => {
-        console.log(json.response);
         this.questions = json.response
       })
     },

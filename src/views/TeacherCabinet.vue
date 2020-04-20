@@ -103,12 +103,10 @@
         .then(
           response => response.json())
         .then(json => {
-          console.log(json.response);
           this.questions = json.response
         })
       },
       showDetailsDialog(question) {
-        console.log(question);
         this.selectedQuestion = Object.assign({}, question)
         this.addDetailsDialog = true
       },
