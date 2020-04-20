@@ -10,11 +10,12 @@
             <h2 class="mt-4 mb-4">Вопросы от студентов</h2>
             <v-list rounded>
               <v-list-item-group color="primary">
-                <v-list-item v-for="(question, i) in questions" :key="i" @click="showDetailsDialog(question)">
-                  <v-list-item-content v-text="question.title"></v-list-item-content>
+                <v-list-item v-for="(question, i) in questions" :key="i" >
+                  <v-list-item-content v-text="question.title" @click="showDetailsDialog(question)"></v-list-item-content>
                   <v-icon
                           v-if="question.answer"
                   >checked</v-icon>
+                  <v-icon @click.prevent="deleteQuestion(question, i)">clear</v-icon>
                 </v-list-item>
               </v-list-item-group>
             </v-list>
@@ -28,6 +29,7 @@
               <v-card class="mb-3">
                 <v-card-subtitle>Вопрос:</v-card-subtitle>
                 <v-card-text>{{selectedQuestion.text}}</v-card-text>
+                <img :src="selectedQuestion.image" />
               </v-card>
 
               <v-card>
@@ -72,8 +74,6 @@
 
 <script>
   import Navbar from '../components/Navbar'
-  import vue2Dropzone from "vue2-dropzone"
-  import "vue2-dropzone/dist/vue2Dropzone.min.css"
   import Cookies from 'js-cookie'
   import {required} from 'vuelidate/lib/validators'
 
@@ -86,27 +86,6 @@
         answer: '',
         selectedQuestion: null,
         questions: [],
-        dropzoneOptions: {
-          url: "",
-          thumbnailWidth: 100,
-          parallelUploads: 1,
-          maxFilesize: 0.1,
-          autoProcessQueue: false,
-          addRemoveLinks: true,
-          dictFileTooBig: "Максимальный размер файла {{maxFilesize}}Кб",
-          dictRemoveFile: "удалить",
-          dictCancelUpload: "отменить",
-          dictCancelUploadConfirmation: "Вы действительно хотите прервать загрузку файла?",
-          createImageThumbnails: false,
-          init() {
-            this.on("queuecomplete", () => {
-              EventBus.$emit("success")
-              vm.cancelFileUpload()
-              vm.getMeetingMediaDropzone()
-              vm.refresh()
-            })
-          }
-        }
       }
     },
     validations: {
@@ -116,8 +95,7 @@
       this.updateQuestions()
     },
     components: {
-      Navbar,
-      vueDropzone: vue2Dropzone
+      Navbar
     },
     methods: {
       updateQuestions() {
@@ -154,6 +132,17 @@
               this.addDetailsDialog = false
               this.updateQuestions()
             }
+          }
+        },
+        async deleteQuestion(question, i) {
+          let resp = await fetch('/questions/delete-question', {
+            method: 'DELETE',
+            headers: {'Content-type': 'application/json'},
+            body: JSON.stringify({id: question._id})
+          })
+          const result = await resp.json()
+          if (result.answer === "ok") {
+            this.questions.splice(i, 1)
           }
         }
       }

@@ -14,12 +14,12 @@
               <h2 class="mt-4 mb-4">История запросов</h2>
               <v-list rounded>
                 <v-list-item-group color="primary">
-                  <v-list-item v-for="(question, i) in questions" :key="i" @click="showDetailsDialog(question)">
-                    <v-list-item-content v-text="question.title"></v-list-item-content>
+                  <v-list-item v-for="(question, i) in questions" :key="i">
+                    <v-list-item-content v-text="question.title" @click="showDetailsDialog(question)"></v-list-item-content>
                     <v-icon
                       v-if="question.answer"
                     >checked</v-icon>
-
+                    <v-icon @click.prevent="deleteQuestion(question, i)">clear</v-icon>
                   </v-list-item>
                 </v-list-item-group>
               </v-list>
@@ -55,53 +55,21 @@
                         class="invalid"
                         v-if="$v.text.$dirty && !$v.text.required"
                 >Поле не должно быть пустым</small>
-                <v-card dark color="white darken-1 align-center mt-2">
-                  <v-card-title class="pb-0">
-                    <div class="black--text">Добавление файла</div>
-                  </v-card-title>
-
-                  <v-card-text>
-                    <form ref="form2">
-                      <v-layout row align-center class="pb-4">
-                        <v-flex xs12>
-                          <!--                <VuePerfectScrollbar class="scroll-area-add-files">-->
-                          <vue-dropzone
-                                  ref="myVueDropzone"
-                                  id="dropzone"
-                                  :options="dropzoneOptions"
-                                  :use-custom-slot="true"
-                                  style="min-height: 400px"
-                          >
-                            <v-layout
-                                    row
-                                    wrap
-                                    align-center
-                                    class="dropzone-custom-content"
-                                    style="min-height: 400px"
-                            >
-                              <v-flex xs12>
-                                <v-icon x-large color="primary" class="fill-width">cloud_upload</v-icon>
-
-                                <h3
-                                        class="dropzone-custom-title fill-width primary--text"
-                                >Перетащите файлы сюда</h3>
-
-                                <div
-                                        class="subtitle fill-width primary--text"
-                                >...или кликните, чтобы выбрать их из папки</div>
-                              </v-flex>
-                            </v-layout>
-                          </vue-dropzone>
-                        </v-flex>
-                      </v-layout>
-                    </form>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn class="primary" @click="cancelMessageDialog">отмена</v-btn>
-                    <v-btn class="primary" @click="sendMessage">отправить</v-btn>
-                  </v-card-actions>
-                </v-card>
+                <div>
+                  <div v-if="!image">
+                    <h2>Select an image</h2>
+                    <input type="file" @change="onFileChange">
+                  </div>
+                  <div v-else class="column">
+                    <img :src="image" />
+                    <button @click="removeImage">Remove image</button>
+                  </div>
+                </div>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn class="primary" @click="cancelMessageDialog">отмена</v-btn>
+                  <v-btn class="primary" @click="sendMessage">отправить</v-btn>
+                </v-card-actions>
               </v-form>
             </v-card-text>
             <v-btn
@@ -127,6 +95,7 @@
                <v-card-subtitle>Ответ:</v-card-subtitle>
                <v-card-text v-if="selectedQuestion.answer">{{selectedQuestion.answer}}</v-card-text>
                <v-card-text v-else>Преподаватель пока не ответил</v-card-text>
+               <img :src="selectedQuestion.image" />
              </v-card>
              <div></div>
            </v-card-text>
@@ -159,31 +128,11 @@
         addMessageDialog: false,
         addDetailsDialog: false,
         selectedQuestion: null,
+        image: '',
         title: '',
         text: '',
         username: Cookies.get('username'),
         questions: [],
-        dropzoneOptions: {
-          url: "",
-          thumbnailWidth: 70,
-          parallelUploads: 1,
-          maxFilesize: 0.1,
-          autoProcessQueue: false,
-          addRemoveLinks: true,
-          dictFileTooBig: "Максимальный размер файла {{maxFilesize}}Кб",
-          dictRemoveFile: "удалить",
-          dictCancelUpload: "отменить",
-          dictCancelUploadConfirmation: "Вы действительно хотите прервать загрузку файла?",
-          createImageThumbnails: false,
-          init() {
-            this.on("queuecomplete", () => {
-              EventBus.$emit("success")
-              vm.cancelMessageDialog()
-              vm.getMeetingMediaDropzone()
-              vm.refresh()
-            })
-          }
-        }
       }
     },
     validations: {
@@ -191,8 +140,7 @@
       text: {required}
     },
     components: {
-      Navbar,
-      vueDropzone: vue2Dropzone
+      Navbar
     },
     mounted() {
       fetch('./questions')
@@ -218,7 +166,7 @@
           let resp = await fetch('/questions/ask-question', {
             method: 'POST',
             headers: {'Content-type': 'application/json'},
-            body: JSON.stringify({title: this.title, text: this.text})
+            body: JSON.stringify({title: this.title, text: this.text, image: this.image})
           })
           const result = await resp.json()
           if (result.answer === "ok") {
@@ -230,6 +178,17 @@
           }
         }
       },
+      async deleteQuestion(question, i) {
+        let resp = await fetch('/questions/delete-question', {
+          method: 'DELETE',
+          headers: {'Content-type': 'application/json'},
+          body: JSON.stringify({id: question._id})
+        })
+        const result = await resp.json()
+        if (result.answer === "ok") {
+          this.questions.splice(i, 1)
+        }
+      },
       showDetailsDialog(question) {
         this.selectedQuestion = Object.assign({}, question)
         this.addDetailsDialog = true
@@ -238,7 +197,25 @@
         this.selectedQuestion = null
         this.addDetailsDialog = false
       },
+      onFileChange(e) {
+        let files = e.target.files || e.dataTransfer.files;
+        if (!files.length)
+          return;
+        this.createImage(files[0]);
+      },
+      createImage(file) {
+        let image = new Image();
+        let reader = new FileReader();
+        let vm = this;
 
+        reader.onload = (e) => {
+          vm.image = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      },
+      removeImage: function (e) {
+        this.image = '';
+      }
     }
   };
 </script>
