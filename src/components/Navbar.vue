@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar color="primary" height="48" class="main-toolbar pl-0" fixed scroll-off-screen dark app>
+  <v-toolbar color="primary" height="48" class="main-toolbar pl-0" fixed dark>
     <v-toolbar-title class="ml=0">
       <div class="d-flex pl-2">
         {{category}}

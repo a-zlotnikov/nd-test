@@ -16,6 +16,10 @@
                 <v-list-item-group color="primary">
                   <v-list-item v-for="(question, i) in questions" :key="i" @click="showDetailsDialog(question)">
                     <v-list-item-content v-text="question.title"></v-list-item-content>
+                    <v-icon
+                      v-if="question.answer"
+                    >checked</v-icon>
+
                   </v-list-item>
                 </v-list-item-group>
               </v-list>
@@ -103,7 +107,6 @@
             <v-btn
                     color="primary"
                     icon
-                    flat
                     @click="cancelMessageDialog"
                     style="position:absolute; top:0; right:0"
             >
@@ -114,11 +117,22 @@
         <v-dialog v-model="addDetailsDialog" v-if="addDetailsDialog" persistent width="70%">
          <v-card>
            <v-card-title v-text="selectedQuestion.title" class="mb-6"></v-card-title>
-           <v-card-text v-text="selectedQuestion.text"></v-card-text>
+           <v-card-text>
+             <v-card class="mb-3">
+               <v-card-subtitle>Вопрос:</v-card-subtitle>
+               <v-card-text>{{selectedQuestion.text}}</v-card-text>
+             </v-card>
+
+             <v-card>
+               <v-card-subtitle>Ответ:</v-card-subtitle>
+               <v-card-text v-if="selectedQuestion.answer">{{selectedQuestion.answer}}</v-card-text>
+               <v-card-text v-else>Преподаватель пока не ответил</v-card-text>
+             </v-card>
+             <div></div>
+           </v-card-text>
            <v-btn
                    color="primary"
                    icon
-                   flat
                    @click="cancelDetailsDialog"
                    style="position:absolute; top:0; right:0"
            >
@@ -148,20 +162,7 @@
         title: '',
         text: '',
         username: Cookies.get('username'),
-        questions: [
-          {
-            title: 'Вопрос №1',
-            text: 'Почём рыбка?',
-          },
-          {
-            title: 'Вопрос №2',
-            text: 'Почём мяско?',
-          },
-          {
-            title: 'Вопрос №3',
-            text: 'Почём молочко?',
-          }
-        ],
+        questions: [],
         dropzoneOptions: {
           url: "",
           thumbnailWidth: 70,
@@ -193,6 +194,15 @@
       Navbar,
       vueDropzone: vue2Dropzone
     },
+    mounted() {
+      fetch('./questions')
+      .then(
+        response => response.json())
+      .then(json => {
+        console.log(json.response);
+        this.questions = json.response
+      })
+    },
     methods: {
       openMessageDialog() {
         this.addMessageDialog = true
@@ -212,6 +222,10 @@
           })
           const result = await resp.json()
           if (result.answer === "ok") {
+            this.questions.push({
+              title: this.title,
+              text: this.text
+            })
             this.addMessageDialog = false
           }
         }
@@ -223,7 +237,8 @@
       cancelDetailsDialog() {
         this.selectedQuestion = null
         this.addDetailsDialog = false
-      }
+      },
+
     }
   };
 </script>
