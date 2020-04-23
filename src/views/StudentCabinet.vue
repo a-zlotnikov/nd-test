@@ -7,7 +7,7 @@
           <v-card width="1200px" class="mt-4">
             <v-card-title>Здравствуйте, {{this.username}}</v-card-title>
             <v-card-text>
-              <v-btn @click="openMessageDialog" color="primary" class="mb-6" flat x-large>
+              <v-btn @click="openMessageDialog" color="primary" class="mb-6" x-large>
                 Добавить вопрос
               </v-btn>
               <hr/>
@@ -132,6 +132,7 @@
         title: '',
         text: '',
         username: Cookies.get('username'),
+        isTeacher: Cookies.get('isTeacher'),
         questions: [],
       }
     },
@@ -143,6 +144,7 @@
       Navbar
     },
     mounted() {
+      this.authChecker()
       fetch('./questions')
       .then(
         response => response.json())
@@ -196,6 +198,15 @@
         this.selectedQuestion = null
         this.addDetailsDialog = false
       },
+      authChecker() {
+        if (!this.username) {
+          this.$router.push('/')
+        } else {
+          if (this.isTeacher === 'true') {
+            this.$router.push('/teacher')
+          }
+        }
+      },
       onFileChange(e) {
         let files = e.target.files || e.dataTransfer.files;
         if (!files.length)
@@ -222,5 +233,9 @@
 <style scoped>
   .invalid {
     color:red;
+  }
+
+  img {
+    max-width: 80%;
   }
 </style>

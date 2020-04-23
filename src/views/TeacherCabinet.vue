@@ -83,6 +83,7 @@
       return {
         addDetailsDialog: false,
         username: Cookies.get('username'),
+        isTeacher: Cookies.get('isTeacher'),
         answer: '',
         selectedQuestion: null,
         questions: [],
@@ -92,6 +93,7 @@
       answer: {required}
     },
     mounted() {
+      this.authChecker()
       this.updateQuestions()
     },
     components: {
@@ -142,6 +144,15 @@
           if (result.answer === "ok") {
             this.questions.splice(i, 1)
           }
+        },
+        authChecker() {
+          if (!this.username) {
+            this.$router.push('/')
+          } else {
+            if (this.isTeacher === 'false') {
+              this.$router.push('/student')
+            }
+          }
         }
       }
   };
@@ -150,5 +161,8 @@
 <style scoped>
   .invalid {
     color:red;
+  }
+  img {
+    max-width: 80%;
   }
 </style>
